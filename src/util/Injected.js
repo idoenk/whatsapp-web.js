@@ -103,6 +103,9 @@ exports.ExposeStore = (moduleRaidStr) => {
             });
         };
     }
+
+    // Fix: https://github.com/pedroslopez/whatsapp-web.js/pull/2378/commits/
+    window.Store.getLinkPreview = window.mR.findModule('getLinkPreview')[0].getLinkPreview;
     
     // eslint-disable-next-line no-undef
     if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
@@ -280,6 +283,17 @@ exports.LoadUtils = () => {
                     preview.preview = true;
                     preview.subtype = 'url';
                     options = { ...options, ...preview };
+                }
+            } else {
+                const link = window.Store.Validators.findLink(content);
+                if (link) {
+                    try {
+                        const preview = await window.Store.getLinkPreview(link);
+                        if (preview) {
+                            preview.data.subtype = 'url';
+                            options = { ...options, ...preview.data };
+                        }
+                    } catch { /** empty */ }
                 }
             }
         }
